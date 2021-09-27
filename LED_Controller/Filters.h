@@ -10,7 +10,7 @@ public:
     updated = true;
   }
    
-  virtual CRGB* Apply(CRGB* leds)
+  virtual void Apply(CRGB*& leds)
   {
     
   }
@@ -43,14 +43,12 @@ public:
     dir = direction;
     delayTimer = updateMillis;
     lastUpdate = 0;
-    offset = 0;
   }
 
   void Update()
   {
     if (updateRequired())
     {
-      offset++;
       lastUpdate = millis();
       updated = true;
     }
@@ -58,33 +56,27 @@ public:
       updated = false;
   }
   
-  CRGB* Apply(CRGB* leds)
+  void Apply(CRGB*& leds)
   {
     if (updated)
     {
       int numLEDS = sizeof(leds) / sizeof(CRGB);
-      CRGB* newLEDs = new CRGB[numLEDS];
   
       if (dir == FOREWARD)
       {
         for (int l = 0; l < numLEDS; l++)
-          newLEDs[l] = leds[(l + offset) % numLEDS];
+          leds[l] = leds[(l + 1) % numLEDS];
       }
       else
       {
         for (int l = 0; l < numLEDS; l++)
-          newLEDs[(l + offset) % numLEDS] = leds[l];
+          leds[(l + 1) % numLEDS] = leds[l];
       }
-      
-      return newLEDs;
     }
-    
-    return leds;
   }
 
 private:
   DIRECTION dir;
-  int offset;
 };
 
 class Twinkle : public Filter
@@ -94,6 +86,7 @@ public:
   {
     odds = false;
     delayTimer = updateMillis;
+    originalLEDs = 0;
   }
 
   void Update()
@@ -107,41 +100,44 @@ public:
       updated = false;
   }
 
-  CRGB* Apply(CRGB*& leds)
+  void Apply(CRGB*& leds)
   {
+    if (originalLEDs = 0)
+    {
+      int numLEDs = sizeof(leds) / sizeof(CRGB);
+      originalLEDs = new CRGB[numLEDs];
+
+      for (int l = 0; l < numLEDs; l++)
+        originalLEDs[l] = leds[l];
+    }
+    
     if (updated)
     {
-      int numLEDS = sizeof(leds) / sizeof(CRGB);
-      CRGB* newLEDs = new CRGB[numLEDS];
+      int numLEDs = sizeof(leds) / sizeof(CRGB);
       
-      for(int l = 0 ; l < numLEDS; l++)
+      for(int l = 0 ; l < numLEDs; l++)
       {
         if (odds)
         {
           if (l % 2 == 1)
-            newLEDs[l] = leds[l];
+            leds[l] = originalLEDs[l];
           else
-            newLEDs[l] = CRGB(0,0,0);
+            leds[l] = CRGB(0,0,0);
         }
         else
         {
           if (l % 2 == 0)
-            newLEDs[l] = leds[l];
+            leds[l] = originalLEDs[l];
           else
-            newLEDs[l] = CRGB(0,0,0);
+            leds[l] = CRGB(0,0,0);
         }
       }
-      
-      return newLEDs;
     }
-    
-    return leds;
   }
 
 private:
   bool odds;
-  int delayTimer;
-  unsigned long lastUpdate;
+  CRGB* originalLEDs;
 };
 
 class Blink : public Filter
@@ -151,6 +147,7 @@ public:
   {
     isOn = false;
     delayTimer = updateMillis;
+    originalLEDs = 0;
   }
 
   void Update()
@@ -164,28 +161,33 @@ public:
       updated = false;
   }
 
-  CRGB* Apply(CRGB*& leds)
+  void Apply(CRGB*& leds)
   {
-    if (updated)
+    if (originalLEDs = 0)
     {
-      int numLEDS = sizeof(leds) / sizeof(CRGB);
-      CRGB* newLEDs = new CRGB[numLEDS];
-      
-      for(int l = 0 ; l < numLEDS; l++)
-      {
-        if (isOn)
-          newLEDs[l] = leds[l];
-        else
-          newLEDs[l] = CRGB(0,0,0);
-      }
-      
-      return newLEDs;
+      int numLEDs = sizeof(leds) / sizeof(CRGB);
+      originalLEDs = new CRGB[numLEDs];
+
+      for (int l = 0; l < numLEDs; l++)
+        originalLEDs[l] = leds[l];
     }
     
-    return leds;
+    if (updated)
+    {
+      int numLEDs = sizeof(leds) / sizeof(CRGB);
+
+      for(int l = 0 ; l < numLEDs; l++)
+      {
+        if (isOn)
+          leds[l] = originalLEDs[l];
+        else
+          leds[l] = CRGB(0,0,0);
+      }
+    }
   }
 
 private:
   bool isOn;
+  CRGB* originalLEDs;
 };
 #endif
