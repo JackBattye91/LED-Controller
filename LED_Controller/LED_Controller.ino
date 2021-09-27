@@ -5,6 +5,8 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 
+#include "Filter.h"
+
 // pins
 #define DATA_PIN    3
 #define LED_TYPE    WS2811
@@ -15,6 +17,7 @@
 #define STATE_SOLIDCOLOR          1
 #define STATE_GRADIENTCOLORS16    2
 #define STATE_GRADIENTCOLORS32    3
+#define STATE_SETUP               10
 
 // static EEPROM locations
 #define EEPROM_STATE              0     // 1 byte
@@ -35,6 +38,7 @@ const char *localPassword = "123456";
 
 // stores values in hex
 const char HexValues[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+const String StateText[] = { "Off", "Solid Color", "Gradient Color 16", "Gradient Color 32", "Setup" };
 
 // variables
 int numLEDs = 1;
@@ -50,6 +54,7 @@ TBlendType    currentBlending = LINEARBLEND;
 
 // setup server on port 80
 ESP8266WebServer server(80);
+IPAddress ip;
 
 // **************************************************** SETUP ****************************************************
 void setup() {  
@@ -77,7 +82,10 @@ void setup() {
     // setup Access Point
     WiFi.softAP(localSSID, localPassword);
 
-    server.on("/", handleSetWifi);
+    server.on("/", handleRoot);
+    server.on("/setup", handleSetWifi);
+
+    state = STATE_SETUP;
   }
   else
   {
@@ -92,6 +100,8 @@ void setup() {
     // if connected to wifi
     if (WiFi.status() == WL_CONNECTED)
     {
+      ip = WiFi.localIP();
+      
       // load previous state
       state = EEPROM.read(EEPROM_STATE);
       numLEDs = EEPROM.read(EEPROM_NUMLEDS);
@@ -144,20 +154,16 @@ void loop() {
   // change state
   switch(state)
   {
-    case STATE_OFF:
-      off();
-      break;
-      
     case STATE_SOLIDCOLOR:
-      setSolidColor();
       break;
       
     case STATE_GRADIENTCOLORS16:
-      setGradientColors16();
       break;
 
     case STATE_GRADIENTCOLORS32:
-      setGradientColors32();
+      break;
+      
+    default:
       break;
   }
   
@@ -168,8 +174,31 @@ void loop() {
 // **************************************************** SERVER HANDLES ****************************************************
 void handleRoot() {
   String html = "";
-  //html += "Status: " + WiFi.status() + "\n";
-  //html += "IP: " + WiFi.localIP() + "\n";
+
+  html += "Mode: " + StateText[state] + "\n";
+  html += "LED #: " + String(numLEDs) + "\n";
+  html += "Solid Color: " + colorToString(solidColor) + "\n";
+  html += "Gradient 16 Colors: ";
+  for (int c = 0; c < 16; c++)
+  {
+    html += colorToString(currentPalette16[c]);
+
+    if (c != 15)
+      html += ", ";
+    else
+      html += "\n";
+  }
+  html += "Gradient 32 Colors: ";
+  for (int c = 0; c < 32; c++)
+  {
+    html += colorToString(currentPalette32[c]);
+
+    if (c != 31)
+      html += ", ";
+    else
+      html += "\n";
+  }
+  html += "IP: " + String(ip[0]) + ":" + String(ip[1]) + ":" + String(ip[2]) + ":" + String(ip[3]) + "\n";
   
   server.send(200, "text/text", html);
 }
@@ -270,6 +299,25 @@ void handleSetState()
   if (server.hasArg("state"))
   {
     state = strToValue(server.arg("state"));
+
+    switch(state)
+    {
+      case STATE_OFF:
+        off();
+        break;
+
+      case STATE_SOLIDCOLOR:
+        setSolidColor();
+        break;
+        
+      case STATE_GRADIENTCOLORS16:
+        setGradientColors16();
+        break;
+
+      case STATE_GRADIENTCOLORS32:
+        setGradientColors32();
+        break;
+    }
   }
 }
 void handleSetWifi()
@@ -296,8 +344,22 @@ void handleSetWifi()
     byte ssidLength = writeEEPROM(EEPROM_SSID, server.arg("ssid"));
     byte passkeyLength = writeEEPROM(EEPROM_SSID + ssidLength, server.arg("passkey"));
 
-     server.send(200, "text/html", "Connected");
-     resetFunc();
+    String html = "Connected\n";
+
+    // display MAC address
+    for (int m = 0; m < 6; m++)
+    {
+      html += HexValues[WiFi.macAddress()[m] >> 4];
+      html += HexValues[WiFi.macAddress()[m] & 0x0F];
+      
+      if (m < 5)
+        html += ":";
+      else
+        html += "\n";
+    }
+    
+    server.send(200, "text/text", html);
+    resetFunc();
   }
   else
     server.send(200, "text/html", "Unable to connect");
@@ -308,6 +370,12 @@ void handleSetSolidColor()
   {
     Serial.println("Set Solid Color: " + server.arg("color"));
     solidColor = strToColor(server.arg("color"));
+    setSolidColor();
+  }
+  else if (server.hasArg("h") && server.hasArg("s") && server.hasArg("v"))
+  {
+    CHSV hsvColor = CHSV(strToValue(server.arg("h")), strToValue(server.arg("s")), strToValue(server.arg("v")));
+    hsv2rgb_rainbow(hsvColor, solidColor);
     setSolidColor();
   }
 }
