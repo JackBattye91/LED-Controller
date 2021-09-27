@@ -96,7 +96,7 @@ public:
     delayTimer = updateMillis;
   }
 
-  virtual void Update()
+  void Update()
   {
     if (updateRequired())
     {
@@ -107,7 +107,7 @@ public:
       updated = false;
   }
 
-  virtual CRGB* Apply(CRGB*& leds)
+  CRGB* Apply(CRGB*& leds)
   {
     if (updated)
     {
@@ -153,18 +153,18 @@ public:
     delayTimer = updateMillis;
   }
 
-  virtual void Update()
+  void Update()
   {
     if (updateRequired())
     {
-      isOn = !odds;
+      isOn = !isOn;
       updated = true;
     }
     else
       updated = false;
   }
 
-  virtual CRGB* Apply(CRGB*& leds)
+  CRGB* Apply(CRGB*& leds)
   {
     if (updated)
     {
@@ -186,8 +186,6 @@ public:
   }
 
 private:
-  bool odds;
-  int delayTimer;
-  unsigned long lastUpdate;
+  bool isOn;
 };
 #endif
