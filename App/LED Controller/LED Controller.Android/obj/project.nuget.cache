@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "rgsSZx2Lr3UmTatDJF113Ww3VLXRfbD+KWbEz/Zs2nTVe1DonF5KR91V/UHgsSRlcJd+cgIwDLpjDygeodOMSQ==",
+  "dgSpecHash": "Rjj9KeDg+xHJMp8N9brw7xmkIXJXxVfDFYNiunsI7zoiA31lyJnnV/HKhRrUyXRnHSn8mGLeAVWwEOvySOQ48A==",
   "success": true,
   "projectFilePath": "C:\\Users\\Jack Battye\\OneDrive\\Documents\\GitHub\\LED-Controller\\App\\LED Controller\\LED Controller.Android\\LED Controller.Android.csproj",
   "expectedPackageFiles": [
@@ -59,5 +59,26 @@
     "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\xamarin.google.android.material\\1.2.1.1\\xamarin.google.android.material.1.2.1.1.nupkg.sha512",
     "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\xamarin.google.guava.listenablefuture\\1.0.0.2\\xamarin.google.guava.listenablefuture.1.0.0.2.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: Xamarin.Essentials from 1.7.0 to 1.6.1. Reference the package directly from the project to select a different version. \r\n LED Controller.Android -> LED Controller -> Xamarin.Essentials (>= 1.7.0) \r\n LED Controller.Android -> Xamarin.Essentials (>= 1.6.1)",
+      "libraryId": "Xamarin.Essentials",
+      "targetGraphs": [
+        "MonoAndroid,Version=v11.0"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: Xamarin.Forms from 5.0.0.2291 to 5.0.0.2012. Reference the package directly from the project to select a different version. \r\n LED Controller.Android -> LED Controller -> Xamarin.Forms (>= 5.0.0.2291) \r\n LED Controller.Android -> Xamarin.Forms (>= 5.0.0.2012)",
+      "libraryId": "Xamarin.Forms",
+      "targetGraphs": [
+        "MonoAndroid,Version=v11.0"
+      ]
+    }
+  ]
 }
