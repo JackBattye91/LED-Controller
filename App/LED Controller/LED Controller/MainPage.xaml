@@ -10,7 +10,5 @@
         </Frame>
 
         <colorpicker:ColorWheel SelectedColor="Blue"></colorpicker:ColorWheel>
-        
     </StackLayout>
-
 </ContentPage>

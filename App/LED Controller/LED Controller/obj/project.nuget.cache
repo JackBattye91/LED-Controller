@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "dgSpecHash": "6lksLb5BLUsmG+NlrC+JnK62YqdS1QeM7ZfxYlmwjy7j2D0vHEDgGzNleyb8B4RhAXDrQ9oG3L1/sQfrBhZBUw==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Jack Battye\\OneDrive\\Documents\\GitHub\\LED-Controller\\App\\LED Controller\\LED Controller\\LED Controller.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Jack Battye\\.nuget\\packages\\colormineportable\\2.0.1\\colormineportable.2.0.1.nupkg.sha512",
+    "C:\\Users\\Jack Battye\\.nuget\\packages\\colorpicker.xamarin.forms\\1.3.4.21\\colorpicker.xamarin.forms.1.3.4.21.nupkg.sha512",
+    "C:\\Users\\Jack Battye\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Users\\Jack Battye\\.nuget\\packages\\netstandard.library\\2.0.3\\netstandard.library.2.0.3.nupkg.sha512",
+    "C:\\Users\\Jack Battye\\.nuget\\packages\\skiasharp\\1.60.3\\skiasharp.1.60.3.nupkg.sha512",
+    "C:\\Users\\Jack Battye\\.nuget\\packages\\skiasharp.views.forms\\1.60.3\\skiasharp.views.forms.1.60.3.nupkg.sha512",
+    "C:\\Users\\Jack Battye\\.nuget\\packages\\system.numerics.vectors\\4.5.0\\system.numerics.vectors.4.5.0.nupkg.sha512",
+    "C:\\Users\\Jack Battye\\.nuget\\packages\\xamarin.essentials\\1.7.0\\xamarin.essentials.1.7.0.nupkg.sha512",
+    "C:\\Users\\Jack Battye\\.nuget\\packages\\xamarin.forms\\5.0.0.2291\\xamarin.forms.5.0.0.2291.nupkg.sha512"
+  ],
+  "logs": []
+}
