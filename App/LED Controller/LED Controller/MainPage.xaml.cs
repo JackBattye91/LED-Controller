@@ -13,6 +13,8 @@ namespace LED_Controller
 {
     public partial class MainPage : ContentPage
     {
+        Dictionary<IPAddress, Device> devices = new Dictionary<IPAddress, Device>();
+
         public MainPage()
         {
             InitializeComponent();
@@ -28,14 +30,41 @@ namespace LED_Controller
                 TcpClient tcpClient = new TcpClient();
                 tcpClient.Connect(ip, 3001);
 
-                using (StreamReader reader = new StreamReader(tcpClient.GetStream()))
+                using (NetworkStream nStream = tcpClient.GetStream())
                 {
+                    byte[] data = new byte[256];
+                    nStream.Read(data, 0, data.Length);
+                    string responseText = System.Data.Encoding.ASCII.GetString(data);
+
                     Dispatcher.BeginInvokeOnMainThread(() =>
                     {
+                        Device newDevice = Device.Parse(responseText);
+                        devices.Add(ip, newDevice);
 
+                        Button newButton = new Button
+                        {
+                            Text = newDevice.Name,
+                            VerticalOptions = LayoutOptions.CenterAndExpand,
+                            HorizontalOptions = LayoutOptions.Center
+                        };
+                        newbutton.Clicked += DeviceButtonClicked;
+
+                        deviceList.Children.Add(newButton);
                     });
                 }
+
+                tcpClient.Close();
             }
+        }
+
+        private void DeviceButtonClicked(object sender, EventArgs e)
+        {
+            Button btn = sender as Button;
+
+            DevicePage devPage = new DevicePage();
+            devPage.Device = devices[btn.Text];
+
+            Navigation.PushModalAsync(devPage);
         }
     }
 }
