@@ -52,7 +52,7 @@ namespace LED_Controller
                 // Color Wheel
 
 
-                // add brightness slider 
+                // add brightness slider
                 Slider brightness = new Slider{
                     Minimum = 0,
                     Maximim = 255,
@@ -82,6 +82,13 @@ namespace LED_Controller
         private void btnOnOff_Clicked(object sender, EventArgs e)
         {
             Device.On = !Device.On;
+           
+            Button btnOnOff = sender as Button;
+            if (Device.On)
+                btnOnOff.Text = "On";
+            else
+                btnOnOff.Text = "Off";
+            
             SendString("{ 'on' : " + Device.On.ToString().ToLower() + " }");
         }
 
