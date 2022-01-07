@@ -13,8 +13,6 @@ namespace LED_Controller
 {
     public partial class MainPage : ContentPage
     {
-        Dictionary<IPAddress, Device> devices = new Dictionary<IPAddress, Device>();
-
         public MainPage()
         {
             InitializeComponent();
@@ -47,7 +45,12 @@ namespace LED_Controller
                             VerticalOptions = LayoutOptions.CenterAndExpand,
                             HorizontalOptions = LayoutOptions.Center
                         };
-                        newbutton.Clicked += DeviceButtonClicked;
+                        newbutton.Clicked += (sender, e) => {
+                            DevicePage devPage = new DevicePage();
+                            devPage.Device = newDevice;
+                            devPage.IPAddress = ip;
+                            Navigation.PushModalAsync(devPage);
+                        };
 
                         deviceList.Children.Add(newButton);
                     });
@@ -55,16 +58,6 @@ namespace LED_Controller
 
                 tcpClient.Close();
             }
-        }
-
-        private void DeviceButtonClicked(object sender, EventArgs e)
-        {
-            Button btn = sender as Button;
-
-            DevicePage devPage = new DevicePage();
-            devPage.Device = devices[btn.Text];
-
-            Navigation.PushModalAsync(devPage);
         }
     }
 }

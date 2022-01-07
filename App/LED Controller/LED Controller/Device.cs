@@ -9,6 +9,7 @@ namespace LED_Controller
     {
         public Guid UUID { get; private set; }
         public string Name { get; set; }
+        public int State { get; set; }
         protected List<string> Features { get; set; }
         public Dictionary<string, string> Values { get; set; }
 
