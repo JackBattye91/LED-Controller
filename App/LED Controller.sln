@@ -7,7 +7,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LED Controller.Android", "L
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LED Controller.iOS", "LED Controller\LED Controller.iOS\LED Controller.iOS.csproj", "{EBBEB054-C87B-4A48-945E-6B7CFF445770}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LED Controller", "LED Controller\LED Controller\LED Controller.csproj", "{95FC52D8-7127-44D9-AA64-F81D64A1B066}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LED Controller", "LED Controller\LED Controller\LED Controller.csproj", "{95FC52D8-7127-44D9-AA64-F81D64A1B066}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B0A3AADB-4223-42CA-8714-459C9ED2005B}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

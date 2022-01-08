@@ -2,8 +2,10 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
-             x:Class="LED_Controller.MainPage">
+             x:Class="LED_Controller.MainPage"
+             Title="LED Controller">
 
     <StackLayout x:Name="deviceList">
+        <Label x:Name="lblNoDevices" Text="No Devices Found" HorizontalOptions="CenterAndExpand"/>
     </StackLayout>
 </ContentPage>

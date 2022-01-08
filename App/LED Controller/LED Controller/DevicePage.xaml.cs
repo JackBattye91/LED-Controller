@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net;
+using System.Net.Sockets;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -15,12 +17,13 @@ namespace LED_Controller
         public Device Device;
         public IPAddress address;
 
-        private int previousState;
-
         public DevicePage()
         {
-            InitializeComponent();
+            InitializeComponent();            
+        }
 
+        protected override void OnAppearing()
+        {
             if (Device == null)
                 return;
 
@@ -29,49 +32,96 @@ namespace LED_Controller
             // add on off button
             Button btnOnOff = new Button
             {
-                VerticalOptions = LayoutOptions.CenterAndExpand,
-                HorizontalOptions = LayoutOptions.Center
+                Text = Device.On ? "On" : "Off",
+                BackgroundColor = Device.On ?  Color.LightBlue : Color.Gray,
+                Margin = new Thickness(5)
             };
-            btnOnOff.Text = Device.On == 0 ? "Off" : "On";
             btnOnOff.Clicked += btnOnOff_Clicked;
-            featuresList.Children.Add(btnOnOff);
+            featureList.Children.Add(btnOnOff);
 
             if (Device.HasFeature("SingleColor"))
             {
+                if (!Device.Values.ContainsKey("brightness"))
+                    Device.Values.Add("brightness", 255);
+
                 // add brightness slider
-                Slider brightness = new Slider{
+                Slider brightnessSlider = new Slider()
+                {
                     Minimum = 0,
-                    Maximim = 255,
-                    Value = int.Parse(Device.GetValue("brightness"));
+                    Maximum = 255,
+                    Value = (int)Device.Values["brightness"]
                 };
-                brightness.ValueChanged += brightness_Changed;
-                featuresList.Children.Add(brightness);
+                Label lblBrightness = new Label()
+                {
+                    Text = Device.Values["brightness"].ToString(),
+                    HorizontalOptions = LayoutOptions.CenterAndExpand,
+                    BindingContext = brightnessSlider
+                };
+                lblBrightness.SetBinding(Label.TextProperty, "Value", BindingMode.Default, null, "{0:F0}");
+                brightnessSlider.ValueChanged += brightness_Changed;
+
+                featureList.Children.Add(new Label() { Text = "Brightness", FontAttributes = FontAttributes.Bold, FontSize = 24, HorizontalOptions = LayoutOptions.CenterAndExpand });
+                featureList.Children.Add(lblBrightness);
+                featureList.Children.Add(brightnessSlider);
             }
-            elseif (Device.HasFeature("SolidColor"))
+            else if (Device.HasFeature("SolidColor"))
             {
-                // Color Wheel
+                if (!Device.Values.ContainsKey("brightness"))
+                    Device.Values.Add("brightness", 255);
 
+                if (!Device.Values.ContainsKey("color"))
+                    Device.Values.Add("color", Color.Blue);
+
+                // Color Wheel
+                ColorPicker.ColorWheel colorWheel = new ColorPicker.ColorWheel() { SelectedColor = (Color)Device.Values["color"] };
 
                 // add brightness slider
-                Slider brightness = new Slider{
+                Slider brightnessSlider = new Slider()
+                {
                     Minimum = 0,
-                    Maximim = 255,
-                    Value = int.Parse(Device.GetValue("brightness"));
+                    Maximum = 255,
+                    Value = (int)Device.Values["brightness"]
                 };
-                brightness.ValueChanged += brightness_Changed;
-                featuresList.Children.Add(brightness);
+                Label lblBrightness = new Label()
+                {
+                    Text = Device.Values["brightness"].ToString(),
+                    HorizontalOptions = LayoutOptions.CenterAndExpand,
+                    BindingContext = brightnessSlider
+                };
+                lblBrightness.SetBinding(Label.TextProperty, "Value", BindingMode.Default, null, "{0:F0}");
+                brightnessSlider.ValueChanged += brightness_Changed;
+
+                featureList.Children.Add(new Label() { Text = "Color", FontAttributes = FontAttributes.Bold, FontSize = 24, HorizontalOptions = LayoutOptions.CenterAndExpand });
+                featureList.Children.Add(colorWheel);
+                featureList.Children.Add(new Label() { Text = "Brightness", FontAttributes = FontAttributes.Bold, FontSize = 24, HorizontalOptions = LayoutOptions.CenterAndExpand });
+                featureList.Children.Add(lblBrightness);
+                featureList.Children.Add(brightnessSlider);
+                featureList.Children.Add(new Label() { Text = "Text" });
             }
             else if (Device.HasFeature("MultiColor"))
             {
-                // add brightness slider 
-                Slider brightness = new Slider{
+                // add brightness slider
+                Slider brightnessSlider = new Slider()
+                {
                     Minimum = 0,
-                    Maximim = 255,
-                    Value = int.Parse(Device.GetValue("brightness"));
+                    Maximum = 255,
+                    Value = (int)Device.Values["brightness"]
                 };
-                brightness.ValueChanged += brightness_Changed;
-                featuresList.Children.Add(brightness);
+                Label lblBrightness = new Label()
+                {
+                    Text = Device.Values["brightness"].ToString(),
+                    HorizontalOptions = LayoutOptions.CenterAndExpand,
+                    BindingContext = brightnessSlider
+                };
+                lblBrightness.SetBinding(Label.TextProperty, "Value", BindingMode.Default, null, "{0:F0}");
+                brightnessSlider.ValueChanged += brightness_Changed;
+
+                featureList.Children.Add(new Label() { Text = "Brightness", FontAttributes = FontAttributes.Bold, FontSize = 24, HorizontalOptions = LayoutOptions.CenterAndExpand });
+                featureList.Children.Add(lblBrightness);
+                featureList.Children.Add(brightnessSlider);
             }
+
+            base.OnAppearing();
         }
 
         private void brightness_Changed(object sender, ValueChangedEventArgs e)
@@ -83,57 +133,75 @@ namespace LED_Controller
         {
             Device.On = !Device.On;
            
-            Button btnOnOff = sender as Button;
-            if (Device.On)
-                btnOnOff.Text = "On";
-            else
-                btnOnOff.Text = "Off";
+            (sender as Button).Text = Device.On ? "On" : "Off";
+            (sender as Button).BackgroundColor = Device.On ? Color.LightBlue : Color.Gray;
             
             SendString("{ 'on' : " + Device.On.ToString().ToLower() + " }");
         }
 
         private void SendData(byte[] data)
         {
-            TcpClient client = new TcpClient();
-            client.Connect(IPAddress, 3001);
-
-            using (NetworkStream nStream = client.GetStream())
+            try
             {
-                nStream.Write(data, 0, data.Length);
-            }
+                TcpClient client = new TcpClient();
+                client.Connect(address, 3001);
 
-            client.Close();
+                using (NetworkStream nStream = client.GetStream())
+                {
+                    nStream.Write(data, 0, data.Length);
+                }
+
+                client.Close();
+            }
+            catch(Exception e)
+            {
+
+            }
         }
 
-        privte void SendString(string str)
+        private void SendString(string str)
         {
-            TcpClient client = new TcpClient();
-            client.Connect(IPAddress, 3001);
-
-            using (NetworkStream nStream = client.GetStream())
+            try
             {
-                byte[] data = System.Text.Encoding.ASCII.GetBytes(str);
-                nStream.Write(data, 0, data.Length);
-            }
+                TcpClient client = new TcpClient();
+                client.Connect(address, 3001);
 
-            client.Close();
+                using (NetworkStream nStream = client.GetStream())
+                {
+                    byte[] data = System.Text.Encoding.ASCII.GetBytes(str);
+                    nStream.Write(data, 0, data.Length);
+                }
+
+                client.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         private void SendValue(string name)
         {
-            TcpClient client = new TcpClient();
-            client.Connect(IPAddress, 3001);
-
-            if (!Device.Values.ContainsKey(name))
-                return;
-
-            using (NetworkStream nStream = client.GetStream())
+            try
             {
-                byte[] data = System.Text.Encoding.ASCII.GetBytes("{ '" + name.ToLower() + "' : '" + device.Values[name].ToLower() + "' }");
-                nStream.Write(data, 0, data.Length);
-            }
+                TcpClient client = new TcpClient();
+                client.Connect(address, 3001);
 
-            client.Close();
+                if (!Device.Values.ContainsKey(name))
+                    return;
+
+                using (NetworkStream nStream = client.GetStream())
+                {
+                    byte[] data = System.Text.Encoding.ASCII.GetBytes("{ '" + name.ToLower() + "' : '" + Device.Values[name].ToString().ToLower() + "' }");
+                    nStream.Write(data, 0, data.Length);
+                }
+
+                client.Close();
+            }
+            catch (Exception e)
+            {
+
+            }
         }
     }
 }

@@ -17,7 +17,26 @@ namespace LED_Controller
         {
             InitializeComponent();
 
-            Task.Run(FindDevices);
+            //Task.Run(FindDevices);
+
+            Device testDevice = new Device() { Name = "Test Device", On = false, State = 1 };
+            testDevice.AddFeature("OnOff");
+            testDevice.AddFeature("SolidColor");
+
+            Button newButton = new Button
+            {
+                Text = testDevice.Name,
+            };
+            newButton.Clicked += (sender, e) => {
+                DevicePage devPage = new DevicePage
+                {
+                    Device = testDevice,
+                    address = new IPAddress(new byte[] { 127, 0, 0, 1 })
+                };
+                Navigation.PushAsync(devPage);
+            };
+
+            deviceList.Children.Add(newButton);
         }
 
         void FindDevices()
@@ -32,25 +51,29 @@ namespace LED_Controller
                 {
                     byte[] data = new byte[256];
                     nStream.Read(data, 0, data.Length);
-                    string responseText = System.Data.Encoding.ASCII.GetString(data);
+                    string responseText = System.Text.Encoding.ASCII.GetString(data);
 
                     Dispatcher.BeginInvokeOnMainThread(() =>
                     {
-                        Device newDevice = Device.Parse(responseText);
-                        devices.Add(ip, newDevice);
+                        Device newDevice = new Device();
+                        newDevice.Parse(responseText);
 
                         Button newButton = new Button
                         {
                             Text = newDevice.Name,
                             VerticalOptions = LayoutOptions.CenterAndExpand,
-                            HorizontalOptions = LayoutOptions.Center
                         };
-                        newbutton.Clicked += (sender, e) => {
-                            DevicePage devPage = new DevicePage();
-                            devPage.Device = newDevice;
-                            devPage.IPAddress = ip;
+                        newButton.Clicked += (sender, e) => {
+                            DevicePage devPage = new DevicePage
+                            {
+                                Device = newDevice,
+                                address = ip
+                            };
                             Navigation.PushModalAsync(devPage);
                         };
+
+                        if (deviceList.Children.Contains(lblNoDevices))
+                            deviceList.Children.Remove(lblNoDevices);
 
                         deviceList.Children.Add(newButton);
                     });
