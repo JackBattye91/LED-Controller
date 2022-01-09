@@ -155,7 +155,7 @@ namespace LED_Controller
             }
             catch(Exception e)
             {
-
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -200,7 +200,7 @@ namespace LED_Controller
             }
             catch (Exception e)
             {
-
+                Console.WriteLine(e.Message);
             }
         }
     }
