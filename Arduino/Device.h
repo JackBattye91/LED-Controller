@@ -1,14 +1,15 @@
 #ifndef DEVICE_H
 #define DEVICE_H
-#include <list>
+#include <vector>
 #include <map>
+#include <string>
 
 class Device
 {
 public:
     Device()
     {
-        for(int b = 0; b < 16; b++)
+        for(int b = 0; b < 36; b++)
             UUID[b] = 0;
         Name =  String();
         On = false;
@@ -46,7 +47,7 @@ public:
 
         // Add Features                                     
         json += "\t\"features\" : [\n";                     // "Features" : [
-        for (int f = 0; f < Features.Count(); f++)          //      "feature_1",
+        for (int f = 0; f < Features.count(); f++)          //      "feature_1",
             json += "\t\t\"" + Features[f] + "\",\n";       //      "feature_2",
         json += "\t],\n";                                   //  ],
 
@@ -67,51 +68,66 @@ public:
     }
     virtual void Parse(String json)
     {
-        if (int uuidPos = json.indexOf("uuid") > -1)
-        {
-            int currPos = json.indexOf("{", uuid) + 1;
-            for(int b = 0; b < 16; b++)
-            {
+        size_t currPos = -1;
 
-            }
+        if ((currPos = json.indexOf("\"name\"")) > -1)
+        {
+            currPos += 6;
+            int startPos = json.indexOf("\"") + 1;
+            int finishPos = json.indexOf("\"", startPos);
+
+            Name = json.substr(startPos, finishPos));
         }
 
-        if (int namePos = json.indexOf("name") > -1)
+        if ((currPos = json.indexOf("\"on\"")) > -1)
         {
-            int currPos = json.indexOf("\"", namePos) + 1;
-            Name = json.substring(currPos, json.indexOf("\""), currPos));
+            currPos += 4;
+            int startPos = json.indexOf(":", currPos) + 1;
+            int finishPos = json.indexOf(",", startPos);
+
+            if (json.substr(startPos, finishPos).indexof("true") != -1)
+                On = true;
+            else
+                On = false;
         }
 
-        if (int onPos = json.indexOf("on") > -1)
+        if ((currPos = json.indexOf("\"state\"")) > -1)
         {
+            currPos += 7;
+            int startPos = json.indexOf(":", currPos) + 1;
+            int finishPos = json.indexOf(",", startPos);
 
+            State = std::stoi(json.substr(startPos, finishPos));
         }
 
-        if (int statePos = json.indexOf("state") > -1)
+        if ((currPos = json.indexOf("\"features\"")) > -1)
         {
-            
+            currPos += 10;
+            int startPos = json.indexOf("[", currPos) + 1;
+            int finishPos = json.indexOf("]", startPos);
+
+            Features = split(json.substr(startPos, finishPos), ",");
         }
 
-        if (int featurePos = json.indexOf("features") > -1)
+        if ((currPos = json.indexOf("\"values\"")) > -1)
         {
+            currPos += 8;
+            int startPos = json.indexOf("[", currPos) + 1;
+            int finishPos = json.indexOf("]", startPos);
 
-        }
-
-        if (int valuePos = json.indexOf("values") > -1)
-        {
-
+            Features = split(json.substr(startPos, finishPos), ",");
         }
     }
 
     byte UUID[16];
-    String Name;
+    std:::string Name;
     bool On;
     int State;
-    std::list<String> Features;
-    std::map<String, bool> boolValues;
-    std::map<String, int> intValues;
-    std::map<String, double> floatValues;
-    std::map<String, String> strValues;
+    std::vector<std::string> Features;
+    std::map<std::string, bool> boolValues;
+    std::map<std::string, int> intValues;
+    std::map<std::string, double> floatValues;
+    std::map<std::string, std::string> strValues;
 
 private:
     bool isInt(String str)
@@ -133,22 +149,20 @@ private:
         return true;
     }
 
-    int IntParse(String str)
+    static vector<string> split (string s, string delimiter)
     {
-        int b = 0;
+        size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+        string token;
+        vector<string> res;
 
-        for(int c = 0; c < str.length(); c++)
-        {
-            if (str[c] >= '0' && str[c] <= '9')
-            {
-                b *= 10;
-                b += str[c] - '0';
-            }
-            else if (str[c] == '.')
-                break;
+        while ((pos_end = s.find (delimiter, pos_start)) != string::npos) {
+            token = s.substr (pos_start, pos_end - pos_start);
+            pos_start = pos_end + delim_len;
+            res.push_back (token);
         }
 
-        return b;
+        res.push_back (s.substr (pos_start));
+        return res;
     }
 };
 #endif
