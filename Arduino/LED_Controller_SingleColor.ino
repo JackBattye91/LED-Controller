@@ -16,7 +16,6 @@ void(* resetFunc) (void) = 0;
 // ssid for devices to connect to ardiuno
 const char *ssid = "LED-Controller";
 const char *password = "123456";
-const int features = FEATURE_SINGLE_COLOR | FEATURE_SOLID_COLOR;
 
 const int BrightnessPin = 3;
 const int RedPin = 3;
@@ -24,14 +23,15 @@ const int GreenPin = 4;
 const int BluePin = 5;
 
 Device device = Device();
-device.Values.add(std::pair<String, String>("red", "0"));
-
+device.FeatureFlags |= FEATURE_SINGLE_COLOR;
+device.IntValue["red"] = 0;
+device.IntValue["green"] = 255;
+device.IntValue["blue"] = 255;
+device.IntValue["brightness"] = 255;
 
 // setup server on port 3001
 ESP8266WebServer server(3001);
 IPAddress ip;
-
-struct { byte red, green, blue, brightness; } color;
 
 void setup()
 {
@@ -44,6 +44,7 @@ void setup()
 
   // connect to wifi
     byte attempts = 0;
+    Wifi.hostname("LED Controller");
     WiFi.begin(ssid, password);
     while(WiFi.status() != WL_CONNECTED && attempts < 5)
     {
@@ -56,28 +57,31 @@ void setup()
       ip = WiFi.localIP();
     
       // setup server addresses
+      server.on("/", handleGetState);
       server.on("/get/state", handleGetState);
       server.on("/set/state", handleSetState);
+
+      Serial.println(ip);
     }
 }
 
 void loop()
 {
-  if (state == 0)
+  if (device.FeatureFlags == 0)
   {
     analogWrite(RedPin, 0);
     analogWrite(GreenPin, 0);
     analogWrite(BluePin, 0);
   }
-  else if (state == FEATURE_SINGLE_COLOR)
+  else if (device.FeatureFlags & FEATURE_SINGLE_COLOR > 0)
   {
-    analogWrite(BrightnessPin, color.brightness);
+    analogWrite(BrightnessPin, device.IntValues["brightness"]);
   }
-  else if (state == FEATURE_SOLID_COLOR)
-  {     
-    analogWrite(RedPin, (color.red / 255) * color.brightness);
-    analogWrite(GreenPin, (color.green / 255) * color.brightness);
-    analogWrite(BluePin, (color.blue / 255) * color.brightness);
+  else if (device.FeatureFlags & FEATURE_SOLID_COLOR > 0)
+  {
+    analogWrite(RedPin, device.IntValues["red"] * device.IntValues["brightness"]);
+    analogWrite(GreenPin, device.IntValues["green"] * device.IntValues["brightness"]);
+    analogWrite(BluePin, device.IntValues["blue"] * device.IntValues["brightness"]);
   }
   
   server.handleClient();
@@ -85,89 +89,11 @@ void loop()
 
 void handleGetState()
 {
-  if (features & FEATURE_SINGLE_COLOR)
-  {
-    String json = "{";
-  
-    json += "\t\"UUID\" : '" + String(uuid) + "',\n";
-    json += "\t\"Name\" : '" + String(deviceName) + "',\n";
-    json += "\t\"State\" : '" + 
-    json += "\t\"Features\" : '" + String("1") + "',\n";
-    json += "\t\"Values\" : [ \"brightness\" : " + String(color.brightness) + "]\n";
-  
-    json += "}";
-    server.send(200, "application/json", json);
-  }
-  else if (features & FEATURE_SOLID_COLOR)
-  {
-    String json = "{";
-  
-    json += "\t'UUID' : '" + String(uuid) + "',\n";
-    json += "\t'Name' : '" + String(deviceName) + "',\n";
-    json += "\t'Features' : '" + String("2") + "',\n";
-    json += "\t'Color': { 'red' : '" + String(color.red) + "', 'blue' : '" + String(color. blue) + "', 'green' : '" + String(color.green) + "' },\n";
-    json += "\t'Brightness' : '" + String(color.brightness) + "'\n";
-  
-    json += "}";
-    server.send(200, "application/json", json);
-  }
-  else if (features & FEATURE_MULTI_COLOR)
-  {
-    String json = "{";
-  
-    json += "\t'UUID' : '" + String(uuid) + "',\n";
-    json += "\t'Name' : '" + String(deviceName) + "',\n";
-    json += "\t'Features' : '" + String("2") + "',\n";
-    json += "\t'Color': [\n";
-    json += "\t\t{ 'red' : '" + String(color.red) + "', 'blue' : '" + String(color. blue) + "', 'green' : '" + String(color.green) + "' },\n";
-    json += "\t],\n";
-    json += "\t'Brightness' : '" + String(color.brightness) + "'\n";
-  
-    json += "}";
-    server.send(200, "application/json", json);
-  }
+    server.send(200, "application/json", device.ToString());
 }
 
 void handleSetState()
 {
-  if (features & FEATURE_SINGLE_COLOR)
-  {
-    if (server.hasArg("name"))
-      deviceName = server.arg("name");
-      
-    if (server.hasArg("brightness"))
-      color.brightness = strToByte(server.arg("brightness"));
-  }
-  else if (features & FEATURE_SOLID_COLOR)
-  {
-    if (server.hasArg("name"))
-      deviceName = server.arg("name");
-    
-    if (server.hasArg("red"))
-      color.red = strToByte(server.arg("red"));
-      if (server.hasArg("blue"))
-      color.blue = strToByte(server.arg("blue"));
-      if (server.hasArg("green"))
-      color.green = strToByte(server.arg("green"));
-      
-    if (server.hasArg("brightness"))
-      color.brightness = strToByte(server.arg("brightness"));
-  }
-}
-
-byte strToByte(String str)
-{
-  byte value = 0;
-  
-  for (int c = 0; c < str.length(); c++)
-  {
-    value *= 10;
-    
-    if (str[c] >= '1' && str[c] <= '9')
-    {
-      value += c - '0';
-    }
-  }
-  
-  return value;
+  if (server.hasArg("data"))
+    device.Parse(server.arg("data"));
 }
