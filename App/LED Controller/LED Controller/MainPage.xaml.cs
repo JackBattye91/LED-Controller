@@ -17,8 +17,6 @@ namespace LED_Controller
         {
             InitializeComponent();
 
-            //Task.Run(FindDevices);
-
             Device testDevice = new Device() { Name = "Test Device", On = false, State = 1 };
             testDevice.AddFeature("OnOff");
             testDevice.AddFeature("SolidColor");
@@ -35,8 +33,10 @@ namespace LED_Controller
                 };
                 Navigation.PushAsync(devPage);
             };
-
             deviceList.Children.Add(newButton);
+
+
+            Task.Run(FindDevices);
         }
 
         void FindDevices()

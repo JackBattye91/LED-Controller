@@ -7,22 +7,33 @@ namespace LED_Controller
 {
     public class Device
     {
+        public enum FEATURE_FLAGS
+        {
+            FEATURE_NONE = 0,
+            FEATURE_ONOFF = 1,
+            FEATURE_SINGLECOLOR = 2,
+            FEATURE_SOLIDCOLOR = 4,
+            FEATURE_MULTICOLOR = 8
+        };
+
         public byte[] UUID { get; private set; }
         public string Name { get; set; }
         public bool On { get; set; }
         public int State { get; set; }
-        protected List<string> Features { get; private set; }
+        protected int Features { get; private set; }
         public Dictionary<string, object> Values { get; set; }
 
         public Device()
         {
             UUID = new byte[16];
-            Features = new List<string>();
+            On = false;
+            State = 0;
+            Features = 0;
             Values = new Dictionary<string, object>();
         }
-        public bool HasFeature(string feature)
+        public bool HasFeature(FEATURE_FLAGS feature)
         {
-            return Features.Contains(feature.ToLower());
+            return ((int)Features & (int)feature > 0);
         }
 
         public override string ToString()

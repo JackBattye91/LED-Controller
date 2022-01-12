@@ -3,11 +3,13 @@
 #include <ESP8266WebServer.h>
 #include <Device.h>
 
-enum FEATURES
+enum FEATURE_FLAGS
 {
-  FEATURE_SINGLE_COLOR = 1,
-  FEATURE_SOLID_COLOR = 2,
-  FEATURE_MULTI_COLOR = 4
+    FEATURE_NONE = 0,
+    FEATURE_ONOFF = 1,
+    FEATURE_SINGLECOLOR = 2,
+    FEATURE_SOLIDCOLOR = 4,
+    FEATURE_MULTICOLOR = 8
 };
 
 // reset arduino function
@@ -23,7 +25,7 @@ const int GreenPin = 4;
 const int BluePin = 5;
 
 Device device = Device();
-device.FeatureFlags |= FEATURE_SINGLE_COLOR;
+device.FeatureFlags |= FEATURE_SINGLECOLOR;
 device.IntValue["red"] = 0;
 device.IntValue["green"] = 255;
 device.IntValue["blue"] = 255;
