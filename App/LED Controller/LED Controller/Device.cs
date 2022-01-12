@@ -20,7 +20,7 @@ namespace LED_Controller
         public string Name { get; set; }
         public bool On { get; set; }
         public int State { get; set; }
-        protected int Features { get; private set; }
+        protected FEATURE_FLAGS Features { get; private set; }
         public Dictionary<string, object> Values { get; set; }
 
         public Device()

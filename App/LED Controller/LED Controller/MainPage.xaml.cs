@@ -18,12 +18,11 @@ namespace LED_Controller
             InitializeComponent();
 
             Device testDevice = new Device() { Name = "Test Device", On = false, State = 1 };
-            testDevice.AddFeature("OnOff");
-            testDevice.AddFeature("SolidColor");
+            testDevice.AddFeature(Device.FEATURE_SINGLECOLOR);
 
             Button newButton = new Button
             {
-                Text = testDevice.Name,
+                Text = testDevice.Name
             };
             newButton.Clicked += (sender, e) => {
                 DevicePage devPage = new DevicePage
@@ -60,9 +59,9 @@ namespace LED_Controller
 
                         Button newButton = new Button
                         {
-                            Text = newDevice.Name,
-                            VerticalOptions = LayoutOptions.CenterAndExpand,
+                            Text = newDevice.Name
                         };
+
                         newButton.Clicked += (sender, e) => {
                             DevicePage devPage = new DevicePage
                             {
@@ -72,9 +71,11 @@ namespace LED_Controller
                             Navigation.PushModalAsync(devPage);
                         };
 
+                        // remove label for no devices found
                         if (deviceList.Children.Contains(lblNoDevices))
                             deviceList.Children.Remove(lblNoDevices);
 
+                        // add device to list
                         deviceList.Children.Add(newButton);
                     });
                 }
