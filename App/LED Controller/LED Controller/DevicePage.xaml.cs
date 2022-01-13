@@ -152,7 +152,7 @@ namespace LED_Controller
             
             SendString("{ 'on' : " + Device.On.ToString().ToLower() + " }");
         }
-
+         
         private void SendData(byte[] data)
         {
             try
