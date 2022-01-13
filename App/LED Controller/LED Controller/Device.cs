@@ -20,7 +20,7 @@ namespace LED_Controller
         public string Name { get; set; }
         public bool On { get; set; }
         public int State { get; set; }
-        protected FEATURE_FLAGS Features { get; private set; }
+        public FEATURE_FLAGS Features { get; set; }
         public Dictionary<string, object> Values { get; set; }
 
         public Device()
@@ -33,7 +33,7 @@ namespace LED_Controller
         }
         public bool HasFeature(FEATURE_FLAGS feature)
         {
-            return ((int)Features & (int)feature > 0);
+            return ((int)Features & (int)feature) > 0;
         }
 
         public override string ToString()
@@ -50,7 +50,7 @@ namespace LED_Controller
                 Name = dev.Name;
                 On = dev.On;
                 State = dev.State;
-                Features = new List<string>(dev.Features);
+                Features = dev.Features;
                 Values = new Dictionary<string, object>(dev.Values);
 
                 return true;

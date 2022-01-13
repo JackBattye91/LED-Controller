@@ -18,7 +18,7 @@ namespace LED_Controller
             InitializeComponent();
 
             Device testDevice = new Device() { Name = "Test Device", On = false, State = 1 };
-            testDevice.AddFeature(Device.FEATURE_SINGLECOLOR);
+            testDevice.Features |= Device.FEATURE_FLAGS.FEATURE_SOLIDCOLOR;
 
             Button newButton = new Button
             {

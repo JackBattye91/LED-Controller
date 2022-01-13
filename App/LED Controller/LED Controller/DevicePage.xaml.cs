@@ -39,7 +39,7 @@ namespace LED_Controller
             btnOnOff.Clicked += btnOnOff_Clicked;
             featureList.Children.Add(btnOnOff);
 
-            if (Device.HasFeature("SingleColor"))
+            if (Device.HasFeature(Device.FEATURE_FLAGS.FEATURE_SINGLECOLOR))
             {
                 if (!Device.Values.ContainsKey("brightness"))
                     Device.Values.Add("brightness", 255);
@@ -64,7 +64,7 @@ namespace LED_Controller
                 featureList.Children.Add(lblBrightness);
                 featureList.Children.Add(brightnessSlider);
             }
-            else if (Device.HasFeature("SolidColor"))
+            else if (Device.HasFeature(Device.FEATURE_FLAGS.FEATURE_SOLIDCOLOR))
             {
                 if (!Device.Values.ContainsKey("brightness"))
                     Device.Values.Add("brightness", 255);
@@ -73,14 +73,15 @@ namespace LED_Controller
                     Device.Values.Add("color", Color.Blue);
 
                 // Color Wheel
-                ColorPicker.ColorWheel colorWheel = new ColorPicker.ColorWheel() { SelectedColor = (Color)Device.Values["color"] };
+                ColorPicker.ColorWheel colorWheel = new ColorPicker.ColorWheel() { SelectedColor = (Color)Device.Values["color"], ShowAlphaSlider = true };
+                colorWheel.SelectedColorChanged += colorWheel_SelectedColorChanged;
 
                 // add brightness slider
                 Slider brightnessSlider = new Slider()
                 {
                     Minimum = 0,
                     Maximum = 255,
-                    Value = (int)Device.Values["brightness"]
+                    Value = (int)Device.Values["brightness"],
                 };
                 Label lblBrightness = new Label()
                 {
@@ -91,15 +92,18 @@ namespace LED_Controller
                 lblBrightness.SetBinding(Label.TextProperty, "Value", BindingMode.Default, null, "{0:F0}");
                 brightnessSlider.ValueChanged += brightness_Changed;
 
-                featureList.Children.Add(new Label() { Text = "Color", FontAttributes = FontAttributes.Bold, FontSize = 24, HorizontalOptions = LayoutOptions.CenterAndExpand });
+                //featureList.Children.Add(new Label() { Text = "Color", FontAttributes = FontAttributes.Bold, FontSize = 24, HorizontalOptions = LayoutOptions.CenterAndExpand });
                 featureList.Children.Add(colorWheel);
-                featureList.Children.Add(new Label() { Text = "Brightness", FontAttributes = FontAttributes.Bold, FontSize = 24, HorizontalOptions = LayoutOptions.CenterAndExpand });
-                featureList.Children.Add(lblBrightness);
-                featureList.Children.Add(brightnessSlider);
-                featureList.Children.Add(new Label() { Text = "Text" });
+                //featureList.Children.Add(new Label() { Text = "Brightness", FontAttributes = FontAttributes.Bold, FontSize = 24, HorizontalOptions = LayoutOptions.CenterAndExpand });
+                // featureList.Children.Add(lblBrightness);
+                //featureList.Children.Add(brightnessSlider);
             }
-            else if (Device.HasFeature("MultiColor"))
+            else if (Device.HasFeature(Device.FEATURE_FLAGS.FEATURE_MULTICOLOR))
             {
+                // Color Wheel
+                ColorPicker.ColorWheel colorWheel = new ColorPicker.ColorWheel() { SelectedColor = (Color)Device.Values["color"], ShowAlphaSlider = true };
+                colorWheel.SelectedColorChanged += colorWheel_SelectedColorChanged;
+
                 // add brightness slider
                 Slider brightnessSlider = new Slider()
                 {
@@ -116,12 +120,22 @@ namespace LED_Controller
                 lblBrightness.SetBinding(Label.TextProperty, "Value", BindingMode.Default, null, "{0:F0}");
                 brightnessSlider.ValueChanged += brightness_Changed;
 
-                featureList.Children.Add(new Label() { Text = "Brightness", FontAttributes = FontAttributes.Bold, FontSize = 24, HorizontalOptions = LayoutOptions.CenterAndExpand });
-                featureList.Children.Add(lblBrightness);
-                featureList.Children.Add(brightnessSlider);
+                //featureList.Children.Add(new Label() { Text = "Brightness", FontAttributes = FontAttributes.Bold, FontSize = 24, HorizontalOptions = LayoutOptions.CenterAndExpand });
+                //featureList.Children.Add(lblBrightness);
+                //featureList.Children.Add(brightnessSlider);
             }
 
             base.OnAppearing();
+        }
+
+        private void colorWheel_SelectedColorChanged(object sender, ColorPicker.BaseClasses.ColorPickerEventArgs.ColorChangedEventArgs e)
+        {
+            string dataString = "{ \"Values\" : [ { \"red\" : " + e.NewColor.R.ToString() + " }, " +
+                        "{ \"green\" : " + e.NewColor.G.ToString() + " }, " +
+                        "{ \"blue : " + e.NewColor.B.ToString() + "}, " +
+                        "{ \"brightness\" + " + e.NewColor.A.ToString() + "} ] }";
+
+            Task.Run( () => { SendString(dataString); } );
         }
 
         private void brightness_Changed(object sender, ValueChangedEventArgs e)
