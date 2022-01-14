@@ -38,7 +38,6 @@ void setup()
   device.IntValues["green"] = 255;
   device.IntValues["blue"] = 255;
   device.IntValues["brightness"] = 255;
-
   
   // setup Serial port
   Serial.begin(115200);

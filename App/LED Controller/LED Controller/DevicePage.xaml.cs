@@ -16,15 +16,20 @@ namespace LED_Controller
     {
         public Device Device;
         public IPAddress address;
+        WebClient webClient;
 
         public DevicePage()
         {
-            InitializeComponent();            
+            InitializeComponent();
+            webClient = new WebClient();
         }
 
         protected override void OnAppearing()
         {
             if (Device == null)
+                return;
+
+            if (address == null)
                 return;
 
             Title = Device.Name;
@@ -152,41 +157,13 @@ namespace LED_Controller
             
             SendString("{ 'on' : " + Device.On.ToString().ToLower() + " }");
         }
-         
-        private void SendData(byte[] data)
-        {
-            try
-            {
-                TcpClient client = new TcpClient();
-                client.Connect(address, 3001);
-
-                using (NetworkStream nStream = client.GetStream())
-                {
-                    nStream.Write(data, 0, data.Length);
-                }
-
-                client.Close();
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-        }
 
         private void SendString(string str)
         {
             try
             {
-                TcpClient client = new TcpClient();
-                client.Connect(address, 3001);
-
-                using (NetworkStream nStream = client.GetStream())
-                {
-                    byte[] data = System.Text.Encoding.ASCII.GetBytes(str);
-                    nStream.Write(data, 0, data.Length);
-                }
-
-                client.Close();
+                webClient.Headers.Set(HttpRequestHeader.ContentType, "application/json");
+                webClient.UploadStringAsync(new Uri("http://" + address.ToString()), str);
             }
             catch(Exception e)
             {
@@ -196,26 +173,8 @@ namespace LED_Controller
 
         private void SendValue(string name)
         {
-            try
-            {
-                TcpClient client = new TcpClient();
-                client.Connect(address, 3001);
-
-                if (!Device.Values.ContainsKey(name))
-                    return;
-
-                using (NetworkStream nStream = client.GetStream())
-                {
-                    byte[] data = System.Text.Encoding.ASCII.GetBytes("{ '" + name.ToLower() + "' : '" + Device.Values[name].ToString().ToLower() + "' }");
-                    nStream.Write(data, 0, data.Length);
-                }
-
-                client.Close();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
+            string str = "{ '" + name.ToLower() + "' : '" + Device.Values[name].ToString().ToLower() + "' }";
+            SendString(str);
         }
     }
 }

@@ -40,47 +40,54 @@ namespace LED_Controller
 
         void FindDevices()
         {
+            WebClient webClient = new WebClient();
+
             for (byte b = 0; b < 255; b++)
             {
                 IPAddress ip = new IPAddress(new byte[] { 192, 168, 1, b });
-                TcpClient tcpClient = new TcpClient();
-                tcpClient.Connect(ip, 3001);
 
-                using (NetworkStream nStream = tcpClient.GetStream())
+
+                webClient.DownloadStringCompleted += (object sender, DownloadStringCompletedEventArgs e) =>
                 {
-                    byte[] data = new byte[256];
-                    nStream.Read(data, 0, data.Length);
-                    string responseText = System.Text.Encoding.ASCII.GetString(data);
-
-                    Dispatcher.BeginInvokeOnMainThread(() =>
+                    try
                     {
-                        Device newDevice = new Device();
-                        newDevice.Parse(responseText);
+                        string responseText = e.Result;
 
-                        Button newButton = new Button
+                        Dispatcher.BeginInvokeOnMainThread(() =>
                         {
-                            Text = newDevice.Name
-                        };
+                            Device newDevice = new Device();
+                            newDevice.Parse(responseText);
 
-                        newButton.Clicked += (sender, e) => {
-                            DevicePage devPage = new DevicePage
+                            Button newButton = new Button
                             {
-                                Device = newDevice,
-                                address = ip
+                                Text = newDevice.Name
                             };
-                            Navigation.PushModalAsync(devPage);
-                        };
 
-                        // remove label for no devices found
-                        if (deviceList.Children.Contains(lblNoDevices))
-                            deviceList.Children.Remove(lblNoDevices);
+                            newButton.Clicked += (btnSender, btnE) =>
+                            {
+                                DevicePage devPage = new DevicePage
+                                {
+                                    Device = newDevice,
+                                    address = ip
+                                };
+                                Navigation.PushModalAsync(devPage);
+                            };
 
-                        // add device to list
-                        deviceList.Children.Add(newButton);
-                    });
-                }
+                            // remove label for no devices found
+                            if (deviceList.Children.Contains(lblNoDevices))
+                                deviceList.Children.Remove(lblNoDevices);
 
-                tcpClient.Close();
+                            // add device to list
+                            deviceList.Children.Add(newButton);
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                };
+
+                webClient.DownloadStringAsync(new Uri("http://" + ip.ToString()));
             }
         }
     }
