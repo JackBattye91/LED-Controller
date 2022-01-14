@@ -16,8 +16,8 @@ enum FEATURE_FLAGS
 void(* resetFunc) (void) = 0;
 
 // ssid for devices to connect to ardiuno
-const char *ssid = "LED-Controller";
-const char *password = "123456";
+const char *ssid = "SSID";
+const char *password = "PA55W0RD";
 
 const int BrightnessPin = 3;
 const int RedPin = 3;
