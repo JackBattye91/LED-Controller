@@ -1,6 +1,10 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
+#define EEPROM_ON       118
+#define EEPROM_STATE    119
+#define EEPROM_FEATURES 120
+
 #include "Arduino.h"
 #include <vector>
 #include <map>

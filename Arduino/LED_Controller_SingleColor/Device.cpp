@@ -5,26 +5,33 @@ Device::Device()
     randomSeed(analogRead(0));
     
     // if EEPROM data exists
-    if (EEPROM[0] == EEPROM_DATA)
+    if (EEPROM[100] == EEPROM_DATA)
     {
         for(int b = 0; b < 16; b++)
-            UUID[b] = EEPROM[b + 1];
+            UUID[b] = EEPROM[b + 101];
+        
+        EEPROM.get(EEPROM_ON, On);
+        EEPROM.get(EEPROM_STATE, State); // 4 bytes for state
+        EEPROM.get(EEPROM_FEATURES, FeatureFlags); // 4 bytes for features
     }
     // generate UUID and save to EEPROM
     else
     {
         for(int b = 0; b < 16; b++)
             EEPROM[b + 1] = UUID[b] = random(128);
-        
+    
+        On = false;
+        State = 0;
+        FeatureFlags = 0;
+
+        EEPROM.put(EEPROM_ON, On);
+        EEPROM.put(EEPROM_STATE, State);
+        EEPROM.put(EEPROM_FEATURES, FeatureFlags);
+
         EEPROM[0] = EEPROM_DATA;
     }
 
     // setup defaults
-    Name = std::string();
-    On = false;
-    State = 0;
-    FeatureFlags = 0;
-
     BoolValues = std::map<std::string, bool>();
     IntValues = std::map<std::string, int>();
     FloatValues = std::map<std::string, double>();
@@ -101,6 +108,8 @@ void Device::Parse(std::string json)
             On = true;
         else
             On = false;
+
+        EEPROM.put(EEPROM_ON, On);
     }
 
     if ((currPos = json.find("\"state\"")) > -1)
@@ -110,15 +119,8 @@ void Device::Parse(std::string json)
         int finishPos = json.find(",", startPos);
 
         State = std::stoi(json.substr(startPos, finishPos));
-    }
 
-    if ((currPos = json.find("\"features\"")) > -1)
-    {
-        currPos += 10;
-        int startPos = json.find(":", currPos) + 1;
-        int finishPos = json.find(",", startPos);
-
-        FeatureFlags = std::stoi(json.substr(startPos, finishPos));
+        EEPROM.put(EEPROM_STATE, State);
     }
 
     if ((currPos = json.find("\"values\"")) > -1)

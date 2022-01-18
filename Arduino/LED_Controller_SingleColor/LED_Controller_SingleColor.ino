@@ -3,6 +3,9 @@
 #include <ESP8266WebServer.h>
 #include "Device.h"
 
+#define EEPROM_SSID       0
+#define EEPROM_PASSWORD   32
+
 enum FEATURE_FLAGS
 {
     FEATURE_NONE = 0,
@@ -16,8 +19,8 @@ enum FEATURE_FLAGS
 void(* resetFunc) (void) = 0;
 
 // ssid for devices to connect to ardiuno
-const char *ssid = "SSID";
-const char *password = "PA55W0RD";
+std::string ssid = "SSID";
+std::string password = "password";
 
 const int BrightnessPin = 3;
 const int RedPin = 3;
@@ -46,13 +49,25 @@ void setup()
   pinMode(GreenPin, OUTPUT);
   pinMode(BluePin, OUTPUT);
 
-  // connect to wifi
+  if (ssid.find("SSID") == 0)
+  {
+    const char *softSSID = "LED_Controller";
+    const char *softPassword = "_LED_PASSWORD_4";
+    WiFi.softAP(softSSID, softPassword, 5, false);
+
+    server.on("/", handleGetState);
+    server.on("/ssid", handleUpdateSSID);
+  }
+  else
+  {
+    // connect to wifi
     byte attempts = 0;
     WiFi.hostname("LED Controller");
     WiFi.begin(ssid, password);
     while(WiFi.status() != WL_CONNECTED && attempts < 5)
     {
       delay(500);
+      attempts++;
     }
 
     // if connected to wifi
@@ -67,6 +82,7 @@ void setup()
 
       Serial.println(ip);
     }
+  }
 }
 
 void loop()
@@ -100,4 +116,29 @@ void handleSetState()
 {
   if (server.hasArg("data"))
     device.Parse(server.arg("data").c_str());
+}
+
+void handleUpdateSSID()
+{
+  if (server.hasArg("ssid") && server.hasArg("password"))
+  {
+    ssid = std::string(server.arg("ssid").c_str());
+    password = std::string(server.arg("password").c_str());
+
+    byte attempts = 0;
+    WiFi.begin(ssid, password);
+    while(WiFi.status() != WL_CONNECTED && attempts < 5)
+    {
+      delay(500);
+      attempts++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED)
+    {
+      server.send(200, "text/plain", "Connected");
+      resetFunc();
+    }
+    else
+      server.send(200, "text/plain", "Unable to connect");
+  }
 }
