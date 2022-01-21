@@ -1,10 +1,22 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include "Device.h"
+#include <FastLED.h>
+#include <EEPROM.h>
+#include "../Device.h"
 
 #define EEPROM_SSID       0
 #define EEPROM_PASSWORD   32
+
+#define BRIGHTNESS_PIN 3
+#define RED_PIN        3
+#define GREEN_PIN      4
+#define BLUE_PIN       5
+#define DATA_PIN       3
+
+#define LED_TYPE      WS2811
+#define COLOR_ORDER   RGB1
+#define NUM_LEDS      1
 
 enum FEATURE_FLAGS
 {
@@ -22,16 +34,15 @@ void(* resetFunc) (void) = 0;
 std::string ssid = "SSID";
 std::string password = "password";
 
-const int BrightnessPin = 3;
-const int RedPin = 3;
-const int GreenPin = 4;
-const int BluePin = 5;
-
 Device device;
 
 // setup server on port 3001
 ESP8266WebServer server(3001);
 IPAddress ip;
+
+CRGB *leds;
+CRGB solidColor;
+CRGBPalette32 currentPalett;
 
 void setup()
 {
@@ -45,9 +56,9 @@ void setup()
   // setup Serial port
   Serial.begin(115200);
 
-  pinMode(RedPin, OUTPUT);
-  pinMode(GreenPin, OUTPUT);
-  pinMode(BluePin, OUTPUT);
+  pinMode(RED_PIN, OUTPUT);
+  pinMode(GREEN_PIN, OUTPUT);
+  pinMode(BLUE_PIN, OUTPUT);
 
   if (ssid.find("SSID") == 0)
   {
@@ -83,25 +94,39 @@ void setup()
       Serial.println(ip);
     }
   }
+
+  if (device.FeatureFlags == FEATURE_FLAGS::FEATURE_MULTICOLOR)
+  {
+    leds = new CRGB[NUM_LEDS];
+    FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  }
 }
 
 void loop()
 {
   if (device.FeatureFlags == 0)
   {
-    analogWrite(RedPin, 0);
-    analogWrite(GreenPin, 0);
-    analogWrite(BluePin, 0);
+    analogWrite(RED_PIN, 0);
+    analogWrite(GREEN_PIN, 0);
+    analogWrite(BLUE_PIN, 0);
+    analogWrite(BRIGHTNESS_PIN, 0);
   }
   else if (device.FeatureFlags & FEATURE_FLAGS::FEATURE_SINGLECOLOR > 0)
   {
-    analogWrite(BrightnessPin, device.IntValues["brightness"]);
+    analogWrite(BRIGHTNESS_PIN, device.IntValues["brightness"]);
   }
-  else if (device.FeatureFlags & FEATURE_SOLIDCOLOR > 0)
+  else if (device.FeatureFlags & FEATURE_FLAGS::FEATURE_SOLIDCOLOR > 0)
   {
-    analogWrite(RedPin, device.IntValues["red"] * device.IntValues["brightness"]);
-    analogWrite(GreenPin, device.IntValues["green"] * device.IntValues["brightness"]);
-    analogWrite(BluePin, device.IntValues["blue"] * device.IntValues["brightness"]);
+    analogWrite(RED_PIN, device.IntValues["red"] * device.IntValues["brightness"]);
+    analogWrite(GREEN_PIN, device.IntValues["green"] * device.IntValues["brightness"]);
+    analogWrite(BLUE_PIN, device.IntValues["blue"] * device.IntValues["brightness"]);
+  }
+  else if (device.FeatureFlags & FEATURE_FLAGS::FEATURE_MULTICOLOR > 0)
+  {
+    CRGB startColor = CRGB(device.IntValues["startRed"], device.IntValues["startGreen"], device.IntValues["startBlue"]);
+    CRGB finishColor = CRGB(device.IntValues["finishRed"], device.IntValues["finishGreen"], device.IntValues["finishBlue"]);
+
+    fill_gradient(currentPalett, 0, startColor, NUM_LEDS, finishColor);
   }
   
   server.handleClient();
