@@ -96,6 +96,9 @@ void Device::Parse(std::string json)
         int finishPos = json.find("\"", startPos);
 
         Name = json.substr(startPos, finishPos);
+
+        Serial.print("Name: ");
+        Serial.println(Name);
     }
 
     if ((currPos = json.find("\"on\"")) > -1)
@@ -110,6 +113,9 @@ void Device::Parse(std::string json)
             On = false;
 
         EEPROM.put(EEPROM_ON, On);
+
+        Serial.print("On: ");
+        Serial.println(On);
     }
 
     if ((currPos = json.find("\"state\"")) > -1)
@@ -121,6 +127,9 @@ void Device::Parse(std::string json)
         State = std::stoi(json.substr(startPos, finishPos));
 
         EEPROM.put(EEPROM_STATE, State);
+
+        Serial.print("State: ");
+        Serial.println(State);
     }
 
     if ((currPos = json.find("\"values\"")) > -1)
@@ -166,6 +175,11 @@ void Device::Parse(std::string json)
                 else
                     BoolValues[valuePair[0]] = false;
             }
+
+            Serial.print("Value: ");
+            Serial.print(valuePair[0]);
+            Serial.print(" = ");
+            Serial.println(valuePair[1]);
         }
     }
 }
