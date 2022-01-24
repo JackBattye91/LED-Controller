@@ -30,7 +30,7 @@ enum FEATURE_FLAGS
 // reset arduino function
 void(* resetFunc) (void) = 0;
 
-// ssid for devices to connect to ardiuno
+// wifi settings
 std::string ssid = "SSID";
 std::string password = "password";
 
@@ -59,7 +59,7 @@ void setup()
   {
     const char *softSSID = "LED_Controller";
     const char *softPassword = "_LED_PASSWORD_4";
-    WiFi.softAP(softSSID, softPassword, 5, false);
+    WiFi.softAP(softSSID, softPassword, 5, true);
 
     server.on("/", handleGetState);
     server.on("/ssid", handleUpdateSSID);
@@ -68,7 +68,7 @@ void setup()
   {
     // connect to wifi
     byte attempts = 0;
-    WiFi.hostname("LED Controller");
+    WiFi.hostname(device.Name.c_str());
     WiFi.begin(ssid, password);
     while(WiFi.status() != WL_CONNECTED && attempts < 5)
     {
@@ -86,6 +86,7 @@ void setup()
       server.on("/get/state", handleGetState);
       server.on("/set/state", handleSetState);
 
+      Serial.print("IP: ");
       Serial.println(ip);
     }
   }
@@ -121,7 +122,7 @@ void loop()
     CRGB startColor = CRGB(device.IntValues["startRed"], device.IntValues["startGreen"], device.IntValues["startBlue"]);
     CRGB finishColor = CRGB(device.IntValues["finishRed"], device.IntValues["finishGreen"], device.IntValues["finishBlue"]);
     FastLED.setBrightness(device.IntValues["brightness"]);
-    
+
     fill_gradient(currentPalett, 0, startColor, NUM_LEDS, finishColor);
     FastLED.show();
   }
