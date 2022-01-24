@@ -93,8 +93,15 @@ void setup()
 
   if (device.FeatureFlags == FEATURE_FLAGS::FEATURE_MULTICOLOR)
   {
-    leds = new CRGB[NUM_LEDS];
-    FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+    int numLEDS = device.IntValues["numLeds"];
+    if (numLEDS == 0)
+    {
+      numLEDS = 1;
+      device.IntValues["numLeds"] = 1;
+    }
+
+    leds = new CRGB[numLEDS];
+    FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(numLEDS);
   }
 }
 
