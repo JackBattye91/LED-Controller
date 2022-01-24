@@ -28,7 +28,7 @@ public:
   std::map<std::string, std::string> StringValues;
   
 public:
-    Device();
+    Device(int features = 0);
 
     std::string ToString();
     void Parse(std::string json);

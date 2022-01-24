@@ -1,6 +1,6 @@
 #include "Device.h"
 
-Device::Device()
+Device::Device(int features)
 {
     randomSeed(analogRead(0));
     
@@ -22,13 +22,13 @@ Device::Device()
     
         On = false;
         State = 0;
-        FeatureFlags = 0;
+        FeatureFlags = features;
 
         EEPROM.put(EEPROM_ON, On);
         EEPROM.put(EEPROM_STATE, State);
         EEPROM.put(EEPROM_FEATURES, FeatureFlags);
 
-        EEPROM[0] = EEPROM_DATA;
+        EEPROM[100] = EEPROM_DATA;
     }
 
     // setup defaults

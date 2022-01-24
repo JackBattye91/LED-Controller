@@ -46,13 +46,8 @@ CRGBPalette32 currentPalett;
 
 void setup()
 {
-  device = Device();
-  device.FeatureFlags |= FEATURE_FLAGS::FEATURE_SINGLECOLOR;
-  device.IntValues["red"] = 0;
-  device.IntValues["green"] = 255;
-  device.IntValues["blue"] = 255;
-  device.IntValues["brightness"] = 255;
-  
+  device = Device(FEATURE_FLAGS::FEATURE_SINGLECOLOR);
+
   // setup Serial port
   Serial.begin(115200);
 
@@ -125,8 +120,10 @@ void loop()
   {
     CRGB startColor = CRGB(device.IntValues["startRed"], device.IntValues["startGreen"], device.IntValues["startBlue"]);
     CRGB finishColor = CRGB(device.IntValues["finishRed"], device.IntValues["finishGreen"], device.IntValues["finishBlue"]);
-
+    FastLED.setBrightness(device.IntValues["brightness"]);
+    
     fill_gradient(currentPalett, 0, startColor, NUM_LEDS, finishColor);
+    FastLED.show();
   }
   
   server.handleClient();
